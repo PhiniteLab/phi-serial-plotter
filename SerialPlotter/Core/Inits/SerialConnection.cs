@@ -24,7 +24,7 @@ public class SerialConnection
     public static void CreateConnection()
     {
         SerialPort = new SerialPort();
-        SerialBaudRate = 9600;
+        SerialBaudRate = 115200;
         try
         {
             if (SerialPort != null)
@@ -33,8 +33,6 @@ public class SerialConnection
                 {
                     if (SerialPortName != "")
                     {
-                       
-
                         SerialPort.PortName = SerialPortName;
                         SerialPort.BaudRate = SerialBaudRate;
                         SerialPort.Parity = Parity.None;
@@ -42,8 +40,9 @@ public class SerialConnection
                         SerialPort.Handshake = Handshake.None;
                         SerialPort.DataBits = 8;
                         SerialPort.Open();
-                        SerialPort.DtrEnable = true;
+                        //SerialPort.DtrEnable = true;
                         Console.WriteLine("Connected!");
+                        Console.WriteLine(SerialPortName);
                     }
                     else
                     {

@@ -8,6 +8,7 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Title="Serial Plotter" Height="800" Width="1000">
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1.1*" />
@@ -16,7 +17,7 @@
         <Grid Grid.Row="0">
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ComboBox x:Name="portNames" Height="25" Width="300" Margin="10" SelectionChanged="portNames_SelectionChanged" />
+                    <ComboBox x:Name="portNames" Height="25" Width="300" Margin="10" SelectionChanged="portNames_SelectionChanged"  />
                     <Button x:Name="connect" Content="Connect" Height="25"  Margin="10" Padding="15 0" Click="connect_Click"/>
                     <Button x:Name="closePort" Content="Close Port" Height="25"  Margin="10" Padding="15 0"/>
                 </StackPanel>
@@ -32,34 +33,29 @@
             <oxy:Plot Title="{Binding Title}">
                 <oxy:Plot.Axes>
                     <oxy:LinearAxis Key="xAxis"
-                    IsZoomEnabled="False"
-                    IsPanEnabled="False"
+                    IsZoomEnabled="True"
+                    IsPanEnabled="True"
                     Position="Bottom"
                     MajorGridlineStyle="Dot"
                     MajorGridlineColor="LightGray"
-                    Title="{Binding TitleX}"
-                    Minimum="{Binding MinimumX}"
-                    Maximum="{Binding MaximumX}"
-                    MajorStep="{Binding MajorStepX}"
-                    MinorStep="{Binding MinimumStepX}"
+                    
+                  
                     />
 
                     <oxy:LinearAxis Key="yAxis"
-                    IsZoomEnabled="False"
-                    IsPanEnabled="False"
+                    IsZoomEnabled="True"
+                    IsPanEnabled="True"
                     Position="Left"
                     MajorGridlineStyle="Dot"
                     MajorGridlineColor="LightGray"
-                    Title="{Binding TitleY}"
-                    Minimum="{Binding MinimumY}"
-                    Maximum="{Binding MaximumY}"
-                    MajorStep="{Binding MajorStepY}"
-                    MinorStep="{Binding MinimumStepY}"/>
-
+                   
+                    />
+                    
                 </oxy:Plot.Axes>
 
                 <oxy:Plot.Series>
                     <oxy:LineSeries 
+                        Name="lineSeries"
                         MarkerType="{Binding MarkerTypes}" 
                         ItemsSource="{Binding Points}"
                         StrokeThickness="3"
@@ -71,6 +67,6 @@
                 </oxy:Plot.Series>
             </oxy:Plot>
         </Grid>
-        
+
     </Grid>
 </Window>

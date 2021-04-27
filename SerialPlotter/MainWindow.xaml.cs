@@ -1,4 +1,6 @@
-﻿using System;
+﻿using OxyPlot;
+using OxyPlot.Series;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -28,30 +30,44 @@ namespace SerialPlotter
         string selecetedPortName = "";
         List<string> ports;
 
+        private IList<DataPoint> points;
+
+        public IList<DataPoint> Points
+        {
+            get { return points; }
+            set { points = value; }
+        }
+
+
+
+         long counter = 0;
         public MainWindow()
         {
             InitializeComponent();
             getPorts();
-            
+
         }
 
 
         private void task()
         {
-            SerialConnection.StartReceivingData();
-            //System.Timers.Timer aTimer = new System.Timers.Timer();
-            //aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            //aTimer.Interval = 10;
-            //aTimer.Enabled = true;
+
+            System.Timers.Timer aTimer = new System.Timers.Timer();
+            aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+            aTimer.Interval = 10;
+            aTimer.Enabled = true;
 
         }
-        private static void OnTimedEvent(object source, ElapsedEventArgs e)
+        private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
                 try
                 {
-                    Console.WriteLine(SerialConnection.ReadLine());
+                    double point = double.Parse(SerialConnection.ReadLine());
+                    points.Add(new DataPoint(counter, point));
+                    lineSeries.ItemsSource = points;
+                    counter++;
                 }
                 catch (Exception ex)
                 {
@@ -62,30 +78,16 @@ namespace SerialPlotter
         }
         private void connectToPort()
         {
+            selecetedPortName = portNames.Text;
             SerialConnection.SerialPortName = selecetedPortName;
-
             SerialConnection.CreateConnection();
-            SerialConnection.SerialPort.DataReceived += SerialPort_DataReceived; 
+            points = new List<DataPoint>();
+            task();
+
 
         }
 
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            Application.Current.Dispatcher.Invoke((Action)delegate
-            {
-                try
-                {
-                    Console.WriteLine(SerialConnection.ReadLine());
-                }
-                catch (Exception ex)
-                {
 
-                    Console.WriteLine(ex.Message);
-                }
-            });
-
-           
-        }
 
         private void getPorts()
         {
@@ -96,18 +98,18 @@ namespace SerialPlotter
 
         private void portNames_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            selecetedPortName = portNames.Text;
+
         }
 
         private void connect_Click(object sender, RoutedEventArgs e)
         {
             connectToPort();
-            
+
         }
 
         private void recieveData_Click(object sender, RoutedEventArgs e)
         {
-           task();
+           
         }
     }
 }
