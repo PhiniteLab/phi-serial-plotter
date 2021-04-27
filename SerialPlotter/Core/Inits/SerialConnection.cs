@@ -11,21 +11,20 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-public static class SerialConnection
+public class SerialConnection
 {
     public static string SerialPortName { get; set; }
     public static int SerialBaudRate { get; set; }
     public static string DataFromSerialPort { get; set; }
     public static bool ConnectionStatus { get; set; }
-    public static float X { get; set; }
-    public static float Y { get; set; }
+   
     public static SerialPort SerialPort { get => serialPort; set => serialPort = value; }
     private static SerialPort serialPort;
 
     public static void CreateConnection()
     {
         SerialPort = new SerialPort();
-        SerialBaudRate = 115200;
+        SerialBaudRate = 9600;
         try
         {
             if (SerialPort != null)
@@ -34,16 +33,21 @@ public static class SerialConnection
                 {
                     if (SerialPortName != "")
                     {
+                       
+
                         SerialPort.PortName = SerialPortName;
                         SerialPort.BaudRate = SerialBaudRate;
                         SerialPort.Parity = Parity.None;
                         SerialPort.StopBits = StopBits.One;
+                        SerialPort.Handshake = Handshake.None;
                         SerialPort.DataBits = 8;
                         SerialPort.Open();
+                        SerialPort.DtrEnable = true;
+                        Console.WriteLine("Connected!");
                     }
                     else
                     {
-                      
+                        Console.WriteLine("Already Connected!");
                     }
                 }
             }
@@ -61,11 +65,15 @@ public static class SerialConnection
             try
             {
                 SerialPort.DataReceived += SerialPort_DataReceived;
+               
             }
             catch
             {
                 throw;
             }
+        }
+        else {
+            Console.WriteLine("Not opened");
         }
     }
 
@@ -86,41 +94,22 @@ public static class SerialConnection
 
     private static void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
     {
+        Console.WriteLine("data");
         try
         {
+
             string dataIn = ReadLine();
-            dataIn = dataIn.Replace("\r", string.Empty);
-
-            if (dataIn[0] == '<' && dataIn[dataIn.Length - 1] == '>')
-            {
-                if (dataIn.Contains(","))
-                {
-
-                    var splittedData = dataIn.Split(',');
-                    Y = (float)Convert.ToDouble(splittedData[0].Replace("<", string.Empty).Replace(".", ","));      // Vertical Movement
-                    X = (float)Convert.ToDouble(splittedData[1].Replace(">", string.Empty).Replace(".", ","));      // Horizontal Movement
-
-
-
-                    X = (float)Math.Round(Convert.ToDouble(X), 2);
-                    Y = (float)Math.Round(Convert.ToDouble(Y), 2);
-
-                    //Console.WriteLine(X + "/" + Y);
-                }
-            }
+            Console.WriteLine(dataIn);
         }
         catch
         {
-            //throw;
+            throw;
         }
     }
 
     public static string ReadLine()
     {
-        if (SerialPort.IsOpen == true && SerialPort != null)
-            return SerialPort.ReadLine();
-        else
-            return null;
+        return SerialPort.ReadLine();
     }
 
     public static bool IsConnected()

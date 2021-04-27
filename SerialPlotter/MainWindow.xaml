@@ -23,7 +23,7 @@
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <TextBox x:Name="interval" Text="0.01" Width="100" Height="25" Padding="5" />
-                    <Button x:Name="recieveData" Content="Get Data" Height="25"  Margin="10" Padding="15 0"/>
+                    <Button x:Name="recieveData" Content="Get Data" Click="recieveData_Click" Height="25"  Margin="10" Padding="15 0"/>
                 </StackPanel>
             </StackPanel>
 
