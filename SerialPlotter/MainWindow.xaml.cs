@@ -2,6 +2,7 @@
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
@@ -30,9 +31,9 @@ namespace SerialPlotter
         string selecetedPortName = "";
         List<string> ports;
 
-        private IList<DataPoint> points;
+        private ObservableCollection<DataPoint> points;
 
-        public IList<DataPoint> Points
+        public ObservableCollection<DataPoint> Points
         {
             get { return points; }
             set { points = value; }
@@ -40,7 +41,7 @@ namespace SerialPlotter
 
 
 
-        long counter = 0;
+        double counter = 0;
         public MainWindow()
         {
             InitializeComponent();
@@ -54,27 +55,32 @@ namespace SerialPlotter
 
             System.Timers.Timer aTimer = new System.Timers.Timer();
             aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            aTimer.Interval = 10;
+            aTimer.Interval = 100;
             aTimer.Enabled = true;
 
         }
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
+            counter++;
+            //string[] dataIn = SerialConnection.ReadLine().Replace('\n', '\0').Replace('\r', '\0').Split(' ');
+            string dataIn = SerialConnection.ReadLine().Replace(".", ",");
+            double.TryParse(dataIn, out double point);
+            Console.WriteLine(dataIn);
+
             Application.Current.Dispatcher.Invoke((Action)delegate
             {
                 try
                 {
-                    counter++;
-                    string[] dataIn = SerialConnection.ReadLine().Replace('\n', '\0').Replace('\r', '\0').Split(' ');
 
-                    if (dataIn.Length > 1)
+                    points.Add(new DataPoint(counter, point));
 
-                        if (long.TryParse(dataIn[0], out long time) && double.TryParse(dataIn[1], out double point))
-                        {
-                            points.Add(new DataPoint(counter, point));
-                            lineSeries.ItemsSource = points;
-                            Console.WriteLine(dataIn[0] + " " + dataIn[1]);
-                        }
+                    //Console.WriteLine(time + " " + dataIn[1]);
+                    //if (dataIn.Length > 1)
+
+                    //    if (long.TryParse(dataIn[0], out long time) && double.TryParse(SerialConnection.ReadLine(), out double point))
+                    //    {
+
+                    //    }
                 }
                 catch (Exception ex)
                 {
@@ -84,20 +90,81 @@ namespace SerialPlotter
             });
 
         }
+
+        double firstTime = 0;
+        bool controlTerm = false;
         private void connectToPort()
         {
             selecetedPortName = portNames.Text;
             SerialConnection.SerialPortName = selecetedPortName;
             SerialConnection.CreateConnection();
-            // SerialConnection.SerialPort.DataReceived += SerialPort_DataReceived;
-            points = new List<DataPoint>();
-            task();
+
+            string[] dataIn = { "0" };
+
+            while (dataIn.Length < 2)
+            {
+                string data = SerialConnection.ReadLine().Replace(".", ",");
+               
+                dataIn = data.Replace('\n', '\0').Split(' ');
+                if (dataIn.Length > 1)
+
+                    if (double.TryParse(dataIn[0], out double time) && double.TryParse(dataIn[1], out double point))
+                    {
+                        firstTime = time;
+                        Console.WriteLine(firstTime);
+
+                        controlTerm = true;
+
+                    }
+            }
+
+            SerialConnection.SerialPort.DataReceived += SerialPort_DataReceived;
+
+
+            points = new ObservableCollection<DataPoint>();
+            lineSeries.ItemsSource = points;
+            // task();
 
 
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
+            //counter++;
+
+            // Console.WriteLine(dataIn);
+
+            if (controlTerm == true)
+            {
+                Application.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    try
+                    {
+                        string data = SerialConnection.ReadLine().Replace(".", ",");
+                        string[] dataIn = data.Replace('\n', '\0').Split(' ');
+                        //Console.WriteLine(data);
+
+                        if (dataIn.Length > 1)
+
+                            if (double.TryParse(dataIn[0], out double time) && double.TryParse(dataIn[1], out double point))
+                            {
+                                double finalTime = time - firstTime;
+                                points.Add(new DataPoint(finalTime, point));
+                               
+                            }
+                    }
+                    catch (Exception ex)
+                    {
+
+                        Console.WriteLine(ex.Message);
+                    }
+                });
+            }
+            else
+            {
+               // points.Clear();
+            }
+
 
         }
 

@@ -40,7 +40,7 @@ public class SerialConnection
                         SerialPort.Handshake = Handshake.None;
                         SerialPort.DataBits = 8;
                         SerialPort.Open();
-                        //SerialPort.DtrEnable = true;
+                      //  SerialPort.DtrEnable = true;
                         Console.WriteLine("Connected!");
                         Console.WriteLine(SerialPortName);
                     }
