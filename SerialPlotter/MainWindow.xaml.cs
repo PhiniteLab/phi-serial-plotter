@@ -40,7 +40,7 @@ namespace SerialPlotter
 
 
 
-         long counter = 0;
+        long counter = 0;
         public MainWindow()
         {
             InitializeComponent();
@@ -64,10 +64,17 @@ namespace SerialPlotter
             {
                 try
                 {
-                    double point = double.Parse(SerialConnection.ReadLine());
-                    points.Add(new DataPoint(counter, point));
-                    lineSeries.ItemsSource = points;
                     counter++;
+                    string[] dataIn = SerialConnection.ReadLine().Replace('\n', '\0').Replace('\r', '\0').Split(' ');
+
+                    if (dataIn.Length > 1)
+
+                        if (long.TryParse(dataIn[0], out long time) && double.TryParse(dataIn[1], out double point))
+                        {
+                            points.Add(new DataPoint(counter, point));
+                            lineSeries.ItemsSource = points;
+                            Console.WriteLine(dataIn[0] + " " + dataIn[1]);
+                        }
                 }
                 catch (Exception ex)
                 {
@@ -75,19 +82,24 @@ namespace SerialPlotter
                     Console.WriteLine(ex.Message);
                 }
             });
+
         }
         private void connectToPort()
         {
             selecetedPortName = portNames.Text;
             SerialConnection.SerialPortName = selecetedPortName;
             SerialConnection.CreateConnection();
+            // SerialConnection.SerialPort.DataReceived += SerialPort_DataReceived;
             points = new List<DataPoint>();
             task();
 
 
         }
 
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
 
+        }
 
         private void getPorts()
         {
@@ -109,7 +121,7 @@ namespace SerialPlotter
 
         private void recieveData_Click(object sender, RoutedEventArgs e)
         {
-           
+
         }
     }
 }
