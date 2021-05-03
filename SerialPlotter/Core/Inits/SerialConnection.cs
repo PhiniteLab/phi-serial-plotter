@@ -39,8 +39,11 @@ public class SerialConnection
                         SerialPort.StopBits = StopBits.One;
                         SerialPort.Handshake = Handshake.None;
                         SerialPort.DataBits = 8;
+                        
+                       // SerialPort.ReadBufferSize = 10 * 4096;
+                       // SerialPort.ReadTimeout = 100;
                         SerialPort.Open();
-                      //  SerialPort.DtrEnable = true;
+                        //  SerialPort.DtrEnable = true;
                         Console.WriteLine("Connected!");
                         Console.WriteLine(SerialPortName);
                     }
@@ -57,59 +60,7 @@ public class SerialConnection
         }
     }
 
-    public static void StartReceivingData()
-    {
-        if (SerialPort.IsOpen == true && SerialPort != null)
-        {
-            try
-            {
-                SerialPort.DataReceived += SerialPort_DataReceived;
-               
-            }
-            catch
-            {
-                throw;
-            }
-        }
-        else {
-            Console.WriteLine("Not opened");
-        }
-    }
-
-    public static void StopReceivingData()
-    {
-        if (SerialPort.IsOpen == true && SerialPort != null)
-        {
-            try
-            {
-                SerialPort.DataReceived -= SerialPort_DataReceived;
-            }
-            catch
-            {
-                throw;
-            }
-        }
-    }
-
-    private static void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-    {
-        Console.WriteLine("data");
-        try
-        {
-
-            string dataIn = ReadLine();
-            Console.WriteLine(dataIn);
-        }
-        catch
-        {
-            throw;
-        }
-    }
-
-    public static string ReadLine()
-    {
-        return SerialPort.ReadLine();
-    }
+  
 
     public static bool IsConnected()
     {
