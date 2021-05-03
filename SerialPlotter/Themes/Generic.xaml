@@ -42,8 +42,8 @@
                                 <realTimeGraphX:WpfGraphSurface x:Name="surface" Controller="{TemplateBinding Controller}" DisplayToolTip="{TemplateBinding DisplayToolTip}" BorderThickness="1 0 0 1" BorderBrush="{TemplateBinding Foreground}" />
                             </Grid>
 
-                            <realTimeGraphX:WpfGraphAxisControl Orientation="Vertical" Controller="{TemplateBinding Controller}" StringFormat="0.0" />
-                            <realTimeGraphX:WpfGraphAxisControl Orientation="Horizontal" Controller="{TemplateBinding Controller}" Grid.Column="1" Grid.Row="1" StringFormat="hh\:mm\:ss"/>
+                            <realTimeGraphX:WpfGraphAxisControl Orientation="Vertical" Controller="{TemplateBinding Controller}" StringFormat="0.000" />
+                            <realTimeGraphX:WpfGraphAxisControl Orientation="Horizontal" Controller="{TemplateBinding Controller}" Grid.Column="1" Grid.Row="1" StringFormat="0.00"/> <!--StringFormat="hh\:mm\:ss"-->
                         </Grid>
                     </Border>
                 </ControlTemplate>

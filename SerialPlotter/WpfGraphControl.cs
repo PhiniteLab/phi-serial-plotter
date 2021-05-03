@@ -36,7 +36,7 @@ namespace SerialPlotter
         static WpfGraphControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(WpfGraphControl), new FrameworkPropertyMetadata(typeof(WpfGraphControl)));
-            Console.WriteLine("asdsadasasdas");
+            
         }
     }
 }
