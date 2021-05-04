@@ -3,11 +3,14 @@ using RealTimeGraphX;
 using RealTimeGraphX.DataPoints;
 using RealTimeGraphX.Renderers;
 using RealTimeGraphX.WPF;
+using SerialPlotter.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +26,7 @@ namespace SerialPlotter
         // Commands
         public ICommand connectButtonCommand { get; private set; }
         public ICommand closeConnectionButtonCommand { get; private set; }
+        public ICommand createDataModelCommand { get; private set; }
 
 
         // Properties
@@ -36,13 +40,24 @@ namespace SerialPlotter
         public WpfGraphController<DoubleDataPoint, DoubleDataPoint> MultiController { get; set; }
 
 
+
+        // Data Models Configs.
+
+        public int DataModelsCount { get; set; }
+        public string DataModelSeperator { get; set; }
+       
+        public ObservableCollection<DataModel> DataModels { get; set; }
+
         public MainWindowVM()
         {
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
+            createDataModelCommand = new RelayCommand(CreateDataModels);
 
+            GetSavedDataModels();
 
-            BaudRateList = new List<int> { 9600, 115200 };
+           
+             BaudRateList = new List<int> { 9600, 115200 };
             ComPortList = SerialPort.GetPortNames().ToList();
 
 
@@ -51,110 +66,52 @@ namespace SerialPlotter
             MultiController.Range.MaximumY = 1080;
             MultiController.Range.MaximumX = 10;
             MultiController.Range.AutoY = true;
-           
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 1",
-                Stroke = Colors.Red,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 2",
-                Stroke = Colors.Green,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 3",
-                Stroke = Colors.Blue,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 4",
-                Stroke = Colors.Yellow,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 5",
-                Stroke = Colors.Orange,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 6",
-                Stroke = Colors.White,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 7",
-                Stroke = Colors.Pink,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 8",
-                Stroke = Colors.BlueViolet,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 9",
-                Stroke = Colors.Brown,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 10",
-                Stroke = Colors.DarkGoldenrod,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 11",
-                Stroke = Colors.Silver,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 12",
-                Stroke = Colors.AliceBlue,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 13",
-                Stroke = Colors.YellowGreen,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 14",
-                Stroke = Colors.Peru,
-            });
-
-            MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
-            {
-                Name = "Series 15",
-                Stroke = Colors.Crimson,
-            });
 
 
         }
 
+
+        private void GetSavedDataModels()
+        {
+            DataModels = DataModelProvider.Instance.DataModels;
+            DataModelsCount = DataModels.Count;
+
+        }
+
+
+        private void CreateDataModels()
+        {
+            for (int i = 0; i < DataModelsCount; i++)
+            {
+                DataModel dataModel = new DataModel();
+                dataModel.SeriesName = "Series Name " + i;
+                DataModelProvider.Instance.DataModels.Add(dataModel);
+                //AllColors = from PropertyInfo property in typeof(Colors).GetProperties() orderby property.Name select new ColorInfo(property.Name, (Color)property.GetValue(null, null));
+
+                //CreateWpfGraphDataSeries(dataModel);
+            }
+            DataModelProvider.Instance.SaveDataModels();
+        }
+
+        public WpfGraphDataSeries CreateWpfGraphDataSeries(DataModel dataModel)
+        {
+            return new WpfGraphDataSeries()
+            {
+                Name = dataModel.SeriesName,
+                Stroke = dataModel.SeriesColorInfo.Color,
+            };
+        }
 
 
         public void CloseConnection()
         {
+           
+
             if (SerialConnection.IsConnected())
                 SerialConnection.CloseConnection();
 
         }
-
+        double counter = 0;
         public void ConnectSerialPort()
         {
             SerialConnection.SerialPortName = PortName;
@@ -174,35 +131,46 @@ namespace SerialPlotter
 
                     Task.Factory.StartNew(() =>
                     {
-                        while (true)
+                        try
+                        {
+                            while (SerialConnection.SerialPort != null)
+                            {
+
+                                string data = SerialConnection.SerialPort.ReadLine().Replace(".", ",");
+                                string[] dataIn = data.Replace('\n', '\0').Split(' ');
+
+                                if (dataIn.Length > 1)
+                                {
+                                    List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
+                                    List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
+
+                                    // var x = watch.Elapsed;
+                                    for (int i = 0; i < dataIn.Length - 1; i++)
+                                    {
+                                        // double.TryParse(dataIn[0], out double x);
+                                        xValues.Add(counter);
+                                        double.TryParse(dataIn[i], out double value);
+                                        yValues.Add(value);
+                                        counter++;
+
+                                    }
+                                    MultiController.PushData(xValues, yValues);
+                                }
+
+                            }
+                        }
+                        catch (Exception ex)
                         {
 
-                            string data = SerialConnection.SerialPort.ReadLine().Replace(".", ",");
-                            string[] dataIn = data.Replace('\n', '\0').Split(' ');
-
-                            if (dataIn.Length > 1)
-                            {
-                                List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
-                                List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
-
-                                //var x = watch.Elapsed;
-                                for (int i = 0; i < dataIn.Length - 1; i++)
-                                {
-                                    double.TryParse(dataIn[0], out double x);
-                                    xValues.Add(x / 1000);
-                                    double.TryParse(dataIn[i + 1], out double value);
-                                    yValues.Add(value);
-                                    
-
-                                }
-                                MultiController.PushData(xValues, yValues);
-                            }
-                            // Thread.Sleep(1);
+                            Console.WriteLine(ex.Message);
                         }
                     });
                 }
             }
 
         }
+
+
+
     }
 }
