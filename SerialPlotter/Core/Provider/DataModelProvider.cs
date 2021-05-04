@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using SerialPlotter.Core;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -39,13 +42,14 @@ public sealed class DataModelProvider
         {
             Directory.CreateDirectory(settingsFolderPath);
         }
+        DataModels = new ObservableCollection<DataModel>();
         ReadDataModels();
-        System.Console.WriteLine("ReadDataModels");
+
     }
 
-    private void ReadDataModels()
+    public ObservableCollection<DataModel> ReadDataModels()
     {
-        DataModels = new ObservableCollection<DataModel>();
+        Clear(DataModels);
         bool exist = Directory.Exists(settingsFolderPath);
 
         if (exist)
@@ -57,13 +61,19 @@ public sealed class DataModelProvider
                     DataModel dataModel;
                     XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
                     dataModel = xmls.Deserialize(sw) as DataModel;
+                    System.Console.WriteLine(dataModel.ColorInfo.ColorName);
                     DataModels.Add(dataModel);
                 }
+                Helpers.SortCollection(DataModels, (x => x.Id));
+                
             }
         }
+        return DataModels;
 
     }
 
+
+   
 
     //public static async Task SaveData(Session _sessiona)
     //{
@@ -74,6 +84,23 @@ public sealed class DataModelProvider
 
     //}
 
+
+
+    public void SaveSelectedDataModel(DataModel dataModel)
+    {
+        ReadDataModels();
+
+        DeleteSelectedDataModel(dataModel);
+
+        string fileName = Path.Combine(settingsFolderPath + "\\" + dataModel.SeriesName + ".phi");
+
+        using (StreamWriter sw = new StreamWriter(fileName))
+        {
+            XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
+            xmls.Serialize(sw, dataModel);
+        }
+
+    }
 
     public void SaveDataModels()
     {
@@ -103,5 +130,30 @@ public sealed class DataModelProvider
                 System.Console.WriteLine(file + " deleted");
             }
         }
+    }
+
+    public void DeleteSelectedDataModel(DataModel dataModel)
+    {
+        bool exist = Directory.Exists(settingsFolderPath);
+
+        if (exist)
+        {
+            var files = Directory.GetFiles(settingsFolderPath);
+            var matchedModel = DataModels.Where(x => x.Id == dataModel.Id).FirstOrDefault();
+
+            if (matchedModel != null)
+            {
+                string fileName = Path.Combine(settingsFolderPath + "\\" + matchedModel.SeriesName + ".phi");
+                File.Delete(fileName);
+            }
+
+        }
+       // ReadDataModels();
+
+    }
+
+    void Clear<T>(ObservableCollection<T> list)
+    {
+        list.Clear();
     }
 }

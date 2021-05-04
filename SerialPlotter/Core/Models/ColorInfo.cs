@@ -26,5 +26,13 @@ namespace SerialPlotter.Core.Models
             ColorName = color_name;
             Color = color;
         }
+
+
+        public override string ToString()
+        {
+            return String.Format("{0}-{0}", ColorName, Color);
+        }
+
+
     }
 }

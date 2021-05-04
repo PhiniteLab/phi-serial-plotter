@@ -119,17 +119,23 @@
                     <StackPanel HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Data Count" />
-                            <TextBox  Width="100"  Text="{Binding DataModelsCount,Mode=TwoWay}"></TextBox>
+                            <TextBox  Width="100"  Text="{Binding DataModelsCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                         </StackPanel>
-                        
+
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock  Width="120" Text="Data Seperator" />
-                            <TextBox  Width="100"  Text="{Binding DataModelSeperator,Mode=TwoWay}"></TextBox>
+                            <TextBox  Width="100"  Text="{Binding DataModelSeperator, Mode=TwoWay}"></TextBox>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Create Data Models" />
                             <Button  Content="Create" Height="20" Width="100"  Padding="15 0" Command="{Binding createDataModelCommand}"/>
+
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                            <TextBlock Width="120" Text="Save All Data Models" />
+                            <Button  Content="Save All" Height="20" Width="100"  Padding="15 0" Command="{Binding saveAllDataModelCommand}"/>
+
                         </StackPanel>
 
                         <ListBox MinHeight="100" ItemsSource="{Binding DataModels}" >
@@ -142,18 +148,26 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBox Height="25" Width="100" Text="{Binding SeriesName}" />
-                                        <ComboBox Height="25" Width="100" Margin="10" ItemsSource="{Binding AllColors}" 
+                                        <ComboBox Height="25" Width="100" Margin="10" 
+                                                  ItemsSource="{Binding AllColors}"
                                                   DisplayMemberPath="ColorName" 
-                                                   IsSynchronizedWithCurrentItem="True"
-                                                  SelectedItem="{Binding SeriesColorInfo, Mode=TwoWay}"  />
+                                                  SelectedValue="{Binding Path=ColorInfo.ColorName, Mode=TwoWay}" 
+                                                  SelectedValuePath="ColorName" />
+                                        <Button Content="Update" Height="20" Width="100" Padding="15 0" 
+                                                Command="{Binding Path=DataContext.saveSeriesDetails, RelativeSource={RelativeSource AncestorType=Window},Mode=Default}" 
+                                                CommandParameter="{Binding }"/>
+
+                                        <Button Content="Delete" Height="20" Width="100" Padding="15 0" 
+                                                Command="{Binding Path=DataContext.deleteSeriesDetails, RelativeSource={RelativeSource AncestorType=Window},Mode=Default}" 
+                                                CommandParameter="{Binding }"/>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
 
                     </StackPanel>
-                    
-                    
+
+
                 </TabItem>
 
 

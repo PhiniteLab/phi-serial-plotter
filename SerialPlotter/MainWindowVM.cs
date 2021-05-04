@@ -7,6 +7,7 @@ using SerialPlotter.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
@@ -27,6 +28,10 @@ namespace SerialPlotter
         public ICommand connectButtonCommand { get; private set; }
         public ICommand closeConnectionButtonCommand { get; private set; }
         public ICommand createDataModelCommand { get; private set; }
+        public ICommand saveAllDataModelCommand { get; private set; }
+        public ICommand saveSeriesDetails { get; private set; }
+        public ICommand deleteSeriesDetails { get; private set; }
+
 
 
         // Properties
@@ -43,21 +48,41 @@ namespace SerialPlotter
 
         // Data Models Configs.
 
-        public int DataModelsCount { get; set; }
+        public int DataModelsCount
+        {
+            get { return dataModelsCount; }
+            set
+            {
+                if (dataModelsCount != value)
+                {
+                    dataModelsCount = value;
+                    NotifyPropertyChanged("DataModelsCount");
+                }
+            }
+        }
+
+        private int dataModelsCount;
         public string DataModelSeperator { get; set; }
-       
+
+
         public ObservableCollection<DataModel> DataModels { get; set; }
+
 
         public MainWindowVM()
         {
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
             createDataModelCommand = new RelayCommand(CreateDataModels);
+            saveAllDataModelCommand = new RelayCommand(SaveAllSeriesDetails);
+            saveSeriesDetails = new RelayCommand<DataModel>(SaveSeriesDetails);
+            deleteSeriesDetails = new RelayCommand<DataModel>(DeleteSeriesDetails);
+
+
 
             GetSavedDataModels();
 
-           
-             BaudRateList = new List<int> { 9600, 115200 };
+
+            BaudRateList = new List<int> { 9600, 115200 };
             ComPortList = SerialPort.GetPortNames().ToList();
 
 
@@ -67,50 +92,100 @@ namespace SerialPlotter
             MultiController.Range.MaximumX = 10;
             MultiController.Range.AutoY = true;
 
+            CreateWpfGraphDataSeries();
 
+
+
+        }
+
+        private void SaveSeriesDetails(DataModel dataModel)
+        {
+            if (dataModel != null)
+            {
+                DataModelProvider.Instance.SaveSelectedDataModel(dataModel);
+                GetSavedDataModels();
+                CreateWpfGraphDataSeries();
+            }
+        }
+
+        private void DeleteSeriesDetails(DataModel dataModel)
+        {
+
+            if (dataModel != null)
+            {
+                DataModelProvider.Instance.DeleteSelectedDataModel(dataModel);
+                GetSavedDataModels();
+                CreateWpfGraphDataSeries();
+            }
+
+
+        }
+
+        private void SaveAllSeriesDetails()
+        {
+            if (dataModelsCount > 0)
+            {
+                DataModelProvider.Instance.SaveDataModels();
+                GetSavedDataModels();
+                CreateWpfGraphDataSeries();
+            }
         }
 
 
         private void GetSavedDataModels()
         {
-            DataModels = DataModelProvider.Instance.DataModels;
-            DataModelsCount = DataModels.Count;
-
+            DataModels = DataModelProvider.Instance.ReadDataModels();
+            dataModelsCount = DataModels.Count;
         }
 
 
         private void CreateDataModels()
         {
-            for (int i = 0; i < DataModelsCount; i++)
+            Clear(DataModels);
+
+
+            // TODO: Create One by One and Show the DataModels Count 
+
+            for (int i = 1; i <= dataModelsCount; i++)
             {
                 DataModel dataModel = new DataModel();
+                dataModel.Id = i;
                 dataModel.SeriesName = "Series Name " + i;
                 DataModelProvider.Instance.DataModels.Add(dataModel);
                 //AllColors = from PropertyInfo property in typeof(Colors).GetProperties() orderby property.Name select new ColorInfo(property.Name, (Color)property.GetValue(null, null));
 
                 //CreateWpfGraphDataSeries(dataModel);
             }
-            DataModelProvider.Instance.SaveDataModels();
+
         }
 
-        public WpfGraphDataSeries CreateWpfGraphDataSeries(DataModel dataModel)
+
+
+
+        public void CreateWpfGraphDataSeries()
         {
-            return new WpfGraphDataSeries()
+            MultiController.DataSeriesCollection.Clear();
+            foreach (var dataModel in DataModels)
             {
-                Name = dataModel.SeriesName,
-                Stroke = dataModel.SeriesColorInfo.Color,
-            };
+                MultiController.DataSeriesCollection.Add(new WpfGraphDataSeries()
+                {
+                    Name = dataModel.SeriesName,
+                    Stroke = dataModel.ColorInfo.Color,
+                });
+
+            }
+
         }
 
 
         public void CloseConnection()
         {
-           
-
             if (SerialConnection.IsConnected())
                 SerialConnection.CloseConnection();
 
         }
+
+
         double counter = 0;
         public void ConnectSerialPort()
         {
@@ -170,6 +245,22 @@ namespace SerialPlotter
 
         }
 
+        void Clear<T>(ObservableCollection<T> list)
+        {
+            list.Clear();
+        }
+
+
+        public virtual event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void NotifyPropertyChanged(params string[] propertyNames)
+        {
+            Console.WriteLine("asdasdasdasdasdada");
+            if (PropertyChanged != null)
+            {
+                foreach (string propertyName in propertyNames) PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                PropertyChanged(this, new PropertyChangedEventArgs("HasError"));
+            }
+        }
 
 
     }

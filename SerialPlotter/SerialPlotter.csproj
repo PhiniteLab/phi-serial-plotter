@@ -83,6 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\Helpers.cs" />
     <Compile Include="Core\Models\ColorInfo.cs" />
     <Compile Include="Core\Provider\DataModelProvider.cs" />
     <Compile Include="WpfGraphControl.cs" />
