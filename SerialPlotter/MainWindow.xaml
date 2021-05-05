@@ -7,8 +7,7 @@
         xmlns:local="clr-namespace:SerialPlotter"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Serial Plotter" Height="800" Width="1000"  MinHeight="400" MinWidth="500"
-        d:DataContext="{d:DesignData Type=local:MainWindowVM, IsDesignTimeCreatable=False}">
+        Title="Serial Plotter" Height="800" Width="1000"  MinHeight="400" MinWidth="500">
 
     <Window.Resources>
         <collections:ArrayList x:Key="colors">
@@ -38,7 +37,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" MinHeight="80" />
-            <RowDefinition Height="1*"  MinHeight="80" />
+            <RowDefinition Height="1*"  MinHeight="100" />
             <RowDefinition Height="8*" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
@@ -48,10 +47,12 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <TextBlock Text="COM Port" VerticalAlignment="Center"/>
 
-                        <ComboBox  Height="25" Width="100" Margin="10" ItemsSource="{Binding ComPortList}" SelectedIndex="1" SelectedItem="{Binding PortName}" />
+                        <ComboBox  Height="25" Width="100" Margin="10" ItemsSource="{Binding ComPortList}"  
+                                   SelectedValue="{Binding Path=SettingsModel.SerialPort, Mode=TwoWay}" />
                         <TextBlock Text="Baud Rate" VerticalAlignment="Center"/>
 
-                        <ComboBox  Height="25" Width="100" Margin="10" ItemsSource="{Binding BaudRateList}" SelectedIndex="1" SelectedItem="{Binding BaudRate}" />
+                        <ComboBox  Height="25" Width="100" Margin="10" ItemsSource="{Binding BaudRateList}" 
+                                   SelectedValue="{Binding Path=SettingsModel.BaudRate, Mode=TwoWay}" />
                         <Button  Content="Connect" Height="25"  Margin="10" Padding="15 0" Command="{Binding connectButtonCommand}"/>
                         <Button Content="Close Port" Height="25"  Margin="10" Padding="15 0" Command="{Binding closeConnectionButtonCommand}"/>
                         <Button Content="Clear Plot" Height="25"  Margin="10" Padding="15 0"  Command="{Binding MultiController.ClearCommand}" />
@@ -64,7 +65,7 @@
 
 
         <Grid Grid.Row="1" HorizontalAlignment="Center" Width="auto">
-            <ListBox ItemsSource="{Binding MultiController.DataSeriesCollection}" >
+            <ListBox ItemsSource="{Binding MultiController.DataSeriesCollection}"  >
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal"/>
@@ -72,9 +73,19 @@
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel>
-                            <CheckBox Content="{Binding Name}" IsChecked="{Binding IsVisible}"/>
-                        </StackPanel>
+                        <Border BorderBrush="LightGray" BorderThickness="2" CornerRadius="3">
+                            <StackPanel Margin="3" Height="40" MinWidth="50">
+                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsVisible}"/>
+                                <Canvas  HorizontalAlignment="Center" >
+                                    <Ellipse Width="15" Height="15" Canvas.Top="5">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding Stroke}" />
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </Canvas>
+
+                            </StackPanel>
+                        </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
@@ -107,63 +118,67 @@
 
                                 <CheckBox Margin="0 5 0 0" IsChecked="{Binding MultiController.Range.AutoY,Mode=TwoWay}">Auto Range (Y)</CheckBox>
 
-
-
-
                             </StackPanel>
                         </Border>
                     </Grid>
 
                 </TabItem>
-                <TabItem Header="Configuration">
-                    <StackPanel HorizontalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
-                            <TextBlock Width="120" Text="Data Count" />
-                            <TextBox  Width="100"  Text="{Binding DataModelsCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                <TabItem Header="Configuration" IsEnabled="{Binding IsActiveSettings}">
+                    <StackPanel HorizontalAlignment="Center" CanVerticallyScroll="True" >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+                            <TextBlock Width="120" Text="Variable Count" />
+                            <TextBlock x:Name="variableCount"  Width="50"  Margin="5 0" Text="{Binding DataModelsCount}" />
+                            <Button  Content="+" Height="20" Width="40"  Padding="15 0" Command="{Binding createDataModelCommand}"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
-                            <TextBlock  Width="120" Text="Data Seperator" />
-                            <TextBox  Width="100"  Text="{Binding DataModelSeperator, Mode=TwoWay}"></TextBox>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+                            <TextBlock  Width="120" Text="Variable Seperator" />
+                            <TextBox  Width="50" Margin="5 0" Text="{Binding DataModelSeperator, Mode=TwoWay}"></TextBox>
+                            <Button  Content="Save" Height="20" Width="40"  Padding="2 0" Command="{Binding saveSettingsCommand}"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                        <!--<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Create Data Models" />
-                            <Button  Content="Create" Height="20" Width="100"  Padding="15 0" Command="{Binding createDataModelCommand}"/>
+                           
 
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Save All Data Models" />
                             <Button  Content="Save All" Height="20" Width="100"  Padding="15 0" Command="{Binding saveAllDataModelCommand}"/>
 
-                        </StackPanel>
+                        </StackPanel>-->
 
-                        <ListBox MinHeight="100" ItemsSource="{Binding DataModels}" >
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBox Height="25" Width="100" Text="{Binding SeriesName}" />
-                                        <ComboBox Height="25" Width="100" Margin="10" 
-                                                  ItemsSource="{Binding AllColors}"
+                        <Grid Height="300">
+                            <ListBox  ItemsSource="{Binding DataModels}" ScrollViewer.VerticalScrollBarVisibility ="Auto" >
+
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBox Height="25" Width="100" Text="{Binding SeriesName}" />
+                                            <ComboBox Height="25" Width="100" Margin="10" 
+                                                  ItemsSource="{Binding Path=DataContext.AllColors, RelativeSource={RelativeSource AncestorType=Window},Mode=Default}"
                                                   DisplayMemberPath="ColorName" 
                                                   SelectedValue="{Binding Path=ColorInfo.ColorName, Mode=TwoWay}" 
                                                   SelectedValuePath="ColorName" />
-                                        <Button Content="Update" Height="20" Width="100" Padding="15 0" 
+
+
+                                            <Button Content="Update" Height="20" Width="100" Padding="15 0" 
                                                 Command="{Binding Path=DataContext.saveSeriesDetails, RelativeSource={RelativeSource AncestorType=Window},Mode=Default}" 
                                                 CommandParameter="{Binding }"/>
 
-                                        <Button Content="Delete" Height="20" Width="100" Padding="15 0" 
+                                            <Button Content="Delete" Height="20" Width="100" Padding="15 0" 
                                                 Command="{Binding Path=DataContext.deleteSeriesDetails, RelativeSource={RelativeSource AncestorType=Window},Mode=Default}" 
                                                 CommandParameter="{Binding }"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
 
                     </StackPanel>
 

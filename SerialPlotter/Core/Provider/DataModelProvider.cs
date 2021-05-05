@@ -1,14 +1,14 @@
 ﻿using SerialPlotter.Core;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 public sealed class DataModelProvider
 {
+    /// <summary>
+    /// Singleton Pattern Implementation
+    /// </summary>
     private static DataModelProvider instance = null;
     private static readonly object padlock = new object();
     public static DataModelProvider Instance
@@ -29,19 +29,18 @@ public sealed class DataModelProvider
         }
     }
 
-
     private static string appPath = Directory.GetCurrentDirectory();
     private static string settingsFolder = "\\DataModels";
     private static string settingsFolderPath = Path.Combine(appPath + settingsFolder);
+
+
 
     public ObservableCollection<DataModel> DataModels { get; set; }
 
     DataModelProvider()
     {
-        if (!Directory.Exists(settingsFolderPath))
-        {
-            Directory.CreateDirectory(settingsFolderPath);
-        }
+        if (!Directory.Exists(settingsFolderPath)) Directory.CreateDirectory(settingsFolderPath);
+
         DataModels = new ObservableCollection<DataModel>();
         ReadDataModels();
 
@@ -61,11 +60,10 @@ public sealed class DataModelProvider
                     DataModel dataModel;
                     XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
                     dataModel = xmls.Deserialize(sw) as DataModel;
-                    System.Console.WriteLine(dataModel.ColorInfo.ColorName);
                     DataModels.Add(dataModel);
                 }
                 Helpers.SortCollection(DataModels, (x => x.Id));
-                
+
             }
         }
         return DataModels;
@@ -73,7 +71,7 @@ public sealed class DataModelProvider
     }
 
 
-   
+
 
     //public static async Task SaveData(Session _sessiona)
     //{
@@ -104,7 +102,7 @@ public sealed class DataModelProvider
 
     public void SaveDataModels()
     {
-        DeleteFiles();
+       // DeleteFiles();
         foreach (var dataModel in DataModels)
         {
             string fileName = Path.Combine(settingsFolderPath + "\\" + dataModel.SeriesName + ".phi");
@@ -116,6 +114,7 @@ public sealed class DataModelProvider
             }
 
         }
+        ReadDataModels();
     }
 
     private void DeleteFiles()
@@ -148,9 +147,47 @@ public sealed class DataModelProvider
             }
 
         }
-       // ReadDataModels();
+        // ReadDataModels();
 
     }
+
+
+
+    public void SaveSettings(SettingsModel settingsModel)
+    {
+
+        string fileName = Path.Combine(appPath + "\\AppSettings.phi");
+        using (StreamWriter sw = new StreamWriter(fileName))
+        {
+            XmlSerializer xmls = new XmlSerializer(typeof(SettingsModel));
+            xmls.Serialize(sw, settingsModel);
+        }
+
+    }
+
+
+    public SettingsModel ReadSettings()
+    {
+        string fileName = Path.Combine(appPath + "\\AppSettings.phi");
+        bool exist = File.Exists(fileName);
+
+        SettingsModel settingsModel = new SettingsModel();
+
+        if (exist)
+        {
+            using (StreamReader sw = new StreamReader(fileName))
+            {
+                XmlSerializer xmls = new XmlSerializer(typeof(SettingsModel));
+                settingsModel = xmls.Deserialize(sw) as SettingsModel;
+
+            }
+        }
+
+        return settingsModel;
+
+    }
+
+
 
     void Clear<T>(ObservableCollection<T> list)
     {

@@ -85,6 +85,7 @@
     </ApplicationDefinition>
     <Compile Include="Core\Helpers.cs" />
     <Compile Include="Core\Models\ColorInfo.cs" />
+    <Compile Include="Core\Models\SettingsModel.cs" />
     <Compile Include="Core\Provider\DataModelProvider.cs" />
     <Compile Include="WpfGraphControl.cs" />
     <Page Include="MainWindow.xaml">

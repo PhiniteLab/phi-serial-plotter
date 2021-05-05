@@ -6,15 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Media;
 
-public class DataModel
+public class DataModel : INotifyPropertyChanged
 {
-
-   
     private int id;
     private string seriesName;
     private ColorInfo colorInfo;
-
-
 
     public int Id
     {
@@ -70,14 +66,9 @@ public class DataModel
         }
     }
 
-
-
-    public List<ColorInfo> AllColors { get; set; }
-
-
     public DataModel()
     {
-        GetColorList();
+      
         id = 0;
         seriesName = "Series Name";
         colorInfo = new ColorInfo();
@@ -86,18 +77,5 @@ public class DataModel
 
     }
 
-    private void GetColorList()
-    {
-        AllColors = new List<ColorInfo>();
-        PropertyInfo[] property = typeof(Colors).GetProperties();
-
-        for (int i = 0; i < property.Length; i++)
-        {
-            ColorInfo colorInfo = new ColorInfo();
-            colorInfo.SetColorInfo(property[i].Name, (Color)(property[i].GetValue(null)));
-            AllColors.Add(colorInfo);
-        }
-
-    }
 
 }
