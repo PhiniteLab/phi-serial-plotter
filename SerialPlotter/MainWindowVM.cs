@@ -53,7 +53,6 @@ namespace SerialPlotter
 
         public SettingsModel SettingsModel { get; set; }
 
-
         public List<int> BaudRateList { get; set; }
         public List<string> ComPortList { get; set; }
 
@@ -64,6 +63,23 @@ namespace SerialPlotter
         public List<ColorInfo> AllColors { get; set; }
 
         // Data Models Configs.
+
+
+        private int tickFreq;
+
+        public int TickFrequency
+        {
+            get { return tickFreq; }
+            set
+            {
+                if (tickFreq != value)
+                {
+                    tickFreq = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("TickFrequency"));
+                   if(MultiController != null) MultiController.Range.MaximumX = tickFreq;
+                }
+            }
+        }
 
         private int dataModelsCount;
 
@@ -91,6 +107,7 @@ namespace SerialPlotter
         public MainWindowVM()
         {
             IsActiveSettings = true;
+            TickFrequency = 2;
             // Relays
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
@@ -101,6 +118,8 @@ namespace SerialPlotter
 
             // Lists
             BaudRateList = new List<int> { 9600, 115200 };
+           
+            ComPortList = new List<string>();
             ComPortList = SerialPort.GetPortNames().ToList();
 
             GetColorList();
@@ -111,8 +130,9 @@ namespace SerialPlotter
             MultiController = new WpfGraphController<DoubleDataPoint, DoubleDataPoint>();
             MultiController.Range.MinimumY = 0;
             MultiController.Range.MaximumY = 1080;
-            MultiController.Range.MaximumX = 10;
+            MultiController.Range.MaximumX = TickFrequency;
             MultiController.Range.AutoY = true;
+            //MultiController.RefreshRate = TimeSpan.FromMilliseconds(5);
 
             CreateWpfGraphDataSeries();
 
@@ -172,7 +192,7 @@ namespace SerialPlotter
             DataModelsCount++;
             DataModel dataModel = new DataModel();
             dataModel.Id = DataModelsCount;
-            dataModel.SeriesName = "VariableName " + DataModelsCount;
+            dataModel.SeriesName = "Var " + DataModelsCount;
             DataModelProvider.Instance.DataModels.Add(dataModel);
             DataModelProvider.Instance.SaveDataModels();
             GetSavedDataModels();
@@ -234,7 +254,6 @@ namespace SerialPlotter
 
                         try
                         {
-
                             string data = SerialConnection.SerialPort.ReadLine();
                             data = data.Replace(".", ",");
 
@@ -245,16 +264,16 @@ namespace SerialPlotter
                                 List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
                                 List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
-                                    // var x = watch.Elapsed;
-                                    for (int i = 1; i < dataIn.Length - 1; i++)
+                                // var x = watch.Elapsed;
+                                for (int i = 1; i < dataIn.Length - 1; i++)
                                 {
                                     double.TryParse(dataIn[0], out double x);
-                                    xValues.Add(x);
+                                    xValues.Add(x / 1000);
                                     double.TryParse(dataIn[i], out double value);
                                     yValues.Add(value);
-                                        // counter++;
+                                    // counter++;
 
-                                    }
+                                }
                                 MultiController.PushData(xValues, yValues);
                             }
 
@@ -311,7 +330,7 @@ namespace SerialPlotter
         }
 
 
-       
+
 
     }
 
