@@ -87,6 +87,7 @@
     <Compile Include="Core\Models\ColorInfo.cs" />
     <Compile Include="Core\Models\SettingsModel.cs" />
     <Compile Include="Core\Provider\DataModelProvider.cs" />
+    <Compile Include="Core\ViewHelpers\InverseBooleanConverter.cs" />
     <Compile Include="WpfGraphControl.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -6,11 +6,11 @@
 
 
     <Style TargetType="{x:Type local:WpfGraphControl}">
-        <Setter Property="BorderThickness" Value="1"></Setter>
+        <Setter Property="BorderThickness" Value="2"></Setter>
         <Setter Property="BorderBrush" Value="#FF2E2E2E"></Setter>
         <Setter Property="Padding" Value="20 20 30 20"></Setter>
-        <Setter Property="FontSize" Value="11"></Setter>
-        <Setter Property="Foreground" Value="DodgerBlue"></Setter>
+        <Setter Property="FontSize" Value="12"></Setter>
+        <Setter Property="Foreground" Value="DarkOrange"></Setter>
         <Setter Property="Background">
             <Setter.Value>
                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0" >
@@ -39,7 +39,7 @@
 
                             <Grid Grid.Column="1">
                                 <realTimeGraphX:WpfGraphGridLines Controller="{TemplateBinding Controller}" Foreground="#FF2E2E2E" />
-                                <realTimeGraphX:WpfGraphSurface x:Name="surface" Controller="{TemplateBinding Controller}" DisplayToolTip="{TemplateBinding DisplayToolTip}" BorderThickness="1 0 0 1" BorderBrush="{TemplateBinding Foreground}" />
+                                <realTimeGraphX:WpfGraphSurface x:Name="Surface" Controller="{TemplateBinding Controller}" DisplayToolTip="{TemplateBinding DisplayToolTip}" BorderThickness="1 0 0 1" BorderBrush="{TemplateBinding Foreground}" />
                             </Grid>
 
                             <realTimeGraphX:WpfGraphAxisControl Orientation="Vertical" Controller="{TemplateBinding Controller}" StringFormat="0.000" />

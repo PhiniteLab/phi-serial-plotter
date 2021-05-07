@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace SerialPlotter.Core.Models
@@ -21,8 +18,20 @@ namespace SerialPlotter.Core.Models
         }
 
 
-        public void MatchColor()
+        public void SetRandomColor(int index)
         {
+            List<ColorInfo> AllColors = new List<ColorInfo>();
+            PropertyInfo[] property = typeof(Colors).GetProperties();
+
+            for (int i = 0; i < property.Length; i++)
+            {
+                ColorInfo colorInfo = new ColorInfo();
+                colorInfo.SetColorInfo(property[i].Name, (Color)(property[i].GetValue(null, null)));
+                AllColors.Add(colorInfo);
+            }
+
+            ColorName = AllColors[index].ColorName;
+            Color = AllColors[index].Color;
 
         }
 

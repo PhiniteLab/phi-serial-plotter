@@ -33,8 +33,6 @@ public sealed class DataModelProvider
     private static string settingsFolder = "\\DataModels";
     private static string settingsFolderPath = Path.Combine(appPath + settingsFolder);
 
-
-
     public ObservableCollection<DataModel> DataModels { get; set; }
 
     DataModelProvider()

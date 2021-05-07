@@ -1,5 +1,6 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
 using RealTimeGraphX.DataPoints;
+using RealTimeGraphX.Renderers;
 using RealTimeGraphX.WPF;
 using SerialPlotter.Core.Models;
 using System;
@@ -25,61 +26,60 @@ namespace SerialPlotter
         public ICommand connectButtonCommand { get; private set; }
         public ICommand closeConnectionButtonCommand { get; private set; }
         public ICommand createDataModelCommand { get; private set; }
-
         public ICommand saveSeriesDetails { get; private set; }
         public ICommand deleteSeriesDetails { get; private set; }
+        public ICommand saveCurrentSettingsButtonCommand { get; private set; }
 
 
-        private bool isActiveSettings;
-        public bool IsActiveSettings
+        private bool isConnected;
+        public bool IsConnected
         {
-            get { return isActiveSettings; }
+            get { return isConnected; }
             set
             {
-                if (isActiveSettings != value)
+                if (isConnected != value)
                 {
-                    isActiveSettings = value;
-                    OnPropertyChanged(new PropertyChangedEventArgs("IsActiveSettings"));
+                    isConnected = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("IsConnected"));
 
                 }
             }
         }
 
 
-
-
         // Properties
-
-
-        public SettingsModel SettingsModel { get; set; }
 
         public List<int> BaudRateList { get; set; }
         public List<string> ComPortList { get; set; }
 
-        public WpfGraphController<TimeSpanDataPoint, DoubleDataPoint> Controller { get; set; }
+
 
         public WpfGraphController<DoubleDataPoint, DoubleDataPoint> MultiController { get; set; }
 
         public List<ColorInfo> AllColors { get; set; }
 
-        // Data Models Configs.
+        private SettingsModel settingsModel;
 
-
-        private int tickFreq;
-
-        public int TickFrequency
+        public SettingsModel SettingsModel
         {
-            get { return tickFreq; }
-            set
-            {
-                if (tickFreq != value)
+            get { return settingsModel; }
+            set {
+
+                if (settingsModel != value)
                 {
-                    tickFreq = value;
-                    OnPropertyChanged(new PropertyChangedEventArgs("TickFrequency"));
-                   if(MultiController != null) MultiController.Range.MaximumX = tickFreq;
+                    settingsModel = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("SettingsModel"));
+                  
+
                 }
             }
         }
+
+
+
+        // Data Models Configs.
+
+       
 
         private int dataModelsCount;
 
@@ -106,12 +106,14 @@ namespace SerialPlotter
 
         public MainWindowVM()
         {
-            IsActiveSettings = true;
-            TickFrequency = 2;
+            
+            IsConnected = true;
+           
             // Relays
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
             createDataModelCommand = new RelayCommand(CreateDataModels);
+            saveCurrentSettingsButtonCommand = new RelayCommand(SaveCurrentSettings);
             saveSeriesDetails = new RelayCommand<DataModel>(SaveSeriesDetails);
             deleteSeriesDetails = new RelayCommand<DataModel>(DeleteSeriesDetails);
 
@@ -128,18 +130,33 @@ namespace SerialPlotter
 
 
             MultiController = new WpfGraphController<DoubleDataPoint, DoubleDataPoint>();
-            MultiController.Range.MinimumY = 0;
-            MultiController.Range.MaximumY = 1080;
-            MultiController.Range.MaximumX = TickFrequency;
+            MultiController.Renderer = new ScrollingLineRenderer<WpfGraphDataSeries>();
+            MultiController.Surface = new WpfGraphSurface();
+
+            MultiController.Range.MinimumY = SettingsModel.YMax;
+            MultiController.Range.MaximumY = SettingsModel.YMax;
+            MultiController.Range.MaximumX = SettingsModel.Duration;
             MultiController.Range.AutoY = true;
+            
             //MultiController.RefreshRate = TimeSpan.FromMilliseconds(5);
 
             CreateWpfGraphDataSeries();
 
         }
 
+        private void SettingsModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
 
-        private void SaveSettingsModel()
+            MultiController.Range.MaximumX = SettingsModel.Duration;
+            MultiController.Range.AutoY = SettingsModel.AutoRange;
+            MultiController.Range.MinimumY = SettingsModel.YMin;
+            MultiController.Range.MaximumY = SettingsModel.YMax;
+            SaveCurrentSettings();
+
+
+        }
+
+        private void SaveCurrentSettings()
         {
             DataModelProvider.Instance.SaveSettings(SettingsModel);
         }
@@ -147,6 +164,7 @@ namespace SerialPlotter
         private void GetSettingsModel()
         {
             SettingsModel = DataModelProvider.Instance.ReadSettings();
+            SettingsModel.PropertyChanged += SettingsModel_PropertyChanged;
 
         }
         private void SaveSeriesDetails(DataModel dataModel)
@@ -193,6 +211,7 @@ namespace SerialPlotter
             DataModel dataModel = new DataModel();
             dataModel.Id = DataModelsCount;
             dataModel.SeriesName = "Var " + DataModelsCount;
+            dataModel.ColorInfo.SetRandomColor(DataModelsCount);
             DataModelProvider.Instance.DataModels.Add(dataModel);
             DataModelProvider.Instance.SaveDataModels();
             GetSavedDataModels();
@@ -225,7 +244,7 @@ namespace SerialPlotter
         public void CloseConnection()
         {
             SerialConnection.CloseConnection();
-            IsActiveSettings = true;
+            IsConnected = true;
         }
 
 
@@ -237,7 +256,8 @@ namespace SerialPlotter
 
             if (!SerialConnection.IsConnected())
             {
-                IsActiveSettings = false;
+                IsConnected = false;
+                MultiController.Clear();
                 SerialConnection.CreateConnection();
                 Console.WriteLine("Connected");
 
@@ -265,7 +285,7 @@ namespace SerialPlotter
                                 List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
                                 // var x = watch.Elapsed;
-                                for (int i = 1; i < dataIn.Length - 1; i++)
+                                for (int i = 1; i < dataIn.Length; i++)
                                 {
                                     double.TryParse(dataIn[0], out double x);
                                     xValues.Add(x / 1000);
@@ -287,7 +307,7 @@ namespace SerialPlotter
 
                     }
                     watch.Stop();
-                    IsActiveSettings = true;
+                    IsConnected = true;
 
 
                 });

@@ -15,22 +15,131 @@ public class SettingsModel : INotifyPropertyChanged
 
     private string serialPort;
     private int baudRate;
-    private string stringSeparator;
-    private bool useFirstVariableAsTime;
+    private int duration;
+    private TimeMode timeMode;
+    private bool autoRange;
+    private double yMin;
+    private double yMax;
+    private char stringSeparator;
+    private char firstLetter;
+    private char lastLetter;
 
-    public bool UseFirstVariableAsTime
+
+    /// <summary>
+    /// Default Constructor
+    /// </summary>
+    public SettingsModel()
     {
-        get { return useFirstVariableAsTime; }
+        SerialPort = "COM4";
+        BaudRate = 115200;
+        StringSeparator = ' ';
+        Duration = 2;
+        TimeMode = TimeMode.TimeFromSource;
+        AutoRange = true;
+        YMax = 100;
+        YMin = -100;
+        FirstLetter = '<';
+        LastLetter = '>';
+
+    }
+
+    public char LastLetter
+    {
+        get { return lastLetter; }
         set
         {
-            if (useFirstVariableAsTime != value)
+            if (lastLetter != value)
             {
-                useFirstVariableAsTime = value;
-                NotifyPropertyChanged("UseFirstVariableAsTime");
+                lastLetter = value;
+                NotifyPropertyChanged("LastLetter");
             }
         }
     }
 
+    public char FirstLetter
+    {
+        get { return firstLetter; }
+        set
+        {
+            if (firstLetter != value)
+            {
+                firstLetter = value;
+                NotifyPropertyChanged("FirstLetter");
+            }
+        }
+    }
+
+
+
+    public double YMin
+    {
+        get { return yMin; }
+        set
+        {
+            if (yMin != value)
+            {
+                yMin = value;
+                NotifyPropertyChanged("YMin");
+            }
+        }
+    }
+
+
+    public double YMax
+    {
+        get { return yMax; }
+        set
+        {
+            if (yMax != value)
+            {
+                yMax = value;
+                NotifyPropertyChanged("YMax");
+            }
+        }
+    }
+
+
+    public int Duration
+    {
+        get { return duration; }
+        set
+        {
+            if (duration != value)
+            {
+                duration = value;
+                NotifyPropertyChanged("Duration");
+            }
+
+        }
+    }
+
+    public bool AutoRange
+    {
+        get { return autoRange; }
+        set
+        {
+            if (autoRange != value)
+            {
+                autoRange = value;
+                NotifyPropertyChanged("AutoRange");
+            }
+
+        }
+    }
+
+    public TimeMode TimeMode
+    {
+        get { return timeMode; }
+        set
+        {
+
+            if (timeMode != value)
+            {
+                timeMode = value;
+                NotifyPropertyChanged("TimeMode");
+            }
+        }
+    }
 
     public string SerialPort
     {
@@ -45,7 +154,6 @@ public class SettingsModel : INotifyPropertyChanged
         }
     }
 
-
     public int BaudRate
     {
         get { return baudRate; }
@@ -59,8 +167,7 @@ public class SettingsModel : INotifyPropertyChanged
         }
     }
 
-
-    public string StringSeparator
+    public char StringSeparator
     {
         get { return stringSeparator; }
         set
@@ -73,15 +180,9 @@ public class SettingsModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Default Constructor
-    /// </summary>
-    public SettingsModel()
-    {
-        serialPort = "COM4";
-        baudRate = 115200;
-        stringSeparator = " ";
-    }
+
+    /// Methods
+
 
     public void SetBaudRate(int _baudRate)
     {
@@ -93,10 +194,19 @@ public class SettingsModel : INotifyPropertyChanged
         serialPort = _comPort;
     }
 
-    public void SetStringSeparator(string _separtor)
+    public void SetStringSeparator(char _separtor)
     {
         stringSeparator = _separtor;
     }
 
 
 }
+
+public enum TimeMode
+{
+    TimeFromSource,
+    TimeFromComputer
+
+}
+
+
