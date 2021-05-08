@@ -85,8 +85,10 @@
     </ApplicationDefinition>
     <Compile Include="Core\Helpers.cs" />
     <Compile Include="Core\Models\ColorInfo.cs" />
+    <Compile Include="Core\Models\DataPoint.cs" />
     <Compile Include="Core\Models\SettingsModel.cs" />
     <Compile Include="Core\Provider\DataModelProvider.cs" />
+    <Compile Include="Core\Provider\FileManager.cs" />
     <Compile Include="Core\ViewHelpers\InverseBooleanConverter.cs" />
     <Compile Include="WpfGraphControl.cs" />
     <Page Include="MainWindow.xaml">
@@ -98,7 +100,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Inits\SerialConnection.cs" />
-    <Compile Include="Core\Models\DataModel.cs" />
+    <Compile Include="Core\Models\SeriesModel.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

@@ -6,11 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Media;
 
-public class DataModel : INotifyPropertyChanged
+public class SeriesModel : INotifyPropertyChanged
 {
     private int id;
     private string seriesName;
     private ColorInfo colorInfo;
+
+   
 
     public int Id
     {
@@ -66,7 +68,7 @@ public class DataModel : INotifyPropertyChanged
         }
     }
 
-    public DataModel()
+    public SeriesModel()
     {
       
         id = 0;

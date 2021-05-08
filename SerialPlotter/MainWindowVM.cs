@@ -1,13 +1,16 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
+using Microsoft.Win32;
 using RealTimeGraphX.DataPoints;
 using RealTimeGraphX.Renderers;
 using RealTimeGraphX.WPF;
 using SerialPlotter.Core.Models;
+using SerialPlotter.Core.Provider;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Reflection;
@@ -63,13 +66,14 @@ namespace SerialPlotter
         public SettingsModel SettingsModel
         {
             get { return settingsModel; }
-            set {
+            set
+            {
 
                 if (settingsModel != value)
                 {
                     settingsModel = value;
                     OnPropertyChanged(new PropertyChangedEventArgs("SettingsModel"));
-                  
+
 
                 }
             }
@@ -78,8 +82,6 @@ namespace SerialPlotter
 
 
         // Data Models Configs.
-
-       
 
         private int dataModelsCount;
 
@@ -98,29 +100,25 @@ namespace SerialPlotter
         }
 
         public string DataModelSeperator { get; set; }
-
-
-        public ObservableCollection<DataModel> DataModels { get; set; }
-
-
+        public ObservableCollection<SeriesModel> DataModels { get; set; }
 
         public MainWindowVM()
         {
-            
+
             IsConnected = true;
-           
+
             // Relays
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
             createDataModelCommand = new RelayCommand(CreateDataModels);
             saveCurrentSettingsButtonCommand = new RelayCommand(SaveCurrentSettings);
-            saveSeriesDetails = new RelayCommand<DataModel>(SaveSeriesDetails);
-            deleteSeriesDetails = new RelayCommand<DataModel>(DeleteSeriesDetails);
+            saveSeriesDetails = new RelayCommand<SeriesModel>(SaveSeriesDetails);
+            deleteSeriesDetails = new RelayCommand<SeriesModel>(DeleteSeriesDetails);
 
 
             // Lists
             BaudRateList = new List<int> { 9600, 115200 };
-           
+
             ComPortList = new List<string>();
             ComPortList = SerialPort.GetPortNames().ToList();
 
@@ -137,7 +135,7 @@ namespace SerialPlotter
             MultiController.Range.MaximumY = SettingsModel.YMax;
             MultiController.Range.MaximumX = SettingsModel.Duration;
             MultiController.Range.AutoY = true;
-            
+
             //MultiController.RefreshRate = TimeSpan.FromMilliseconds(5);
 
             CreateWpfGraphDataSeries();
@@ -153,7 +151,6 @@ namespace SerialPlotter
             MultiController.Range.MaximumY = SettingsModel.YMax;
             SaveCurrentSettings();
 
-
         }
 
         private void SaveCurrentSettings()
@@ -167,7 +164,7 @@ namespace SerialPlotter
             SettingsModel.PropertyChanged += SettingsModel_PropertyChanged;
 
         }
-        private void SaveSeriesDetails(DataModel dataModel)
+        private void SaveSeriesDetails(SeriesModel dataModel)
         {
             if (dataModel != null)
             {
@@ -180,7 +177,7 @@ namespace SerialPlotter
             }
         }
 
-        private void DeleteSeriesDetails(DataModel dataModel)
+        private void DeleteSeriesDetails(SeriesModel dataModel)
         {
 
             if (dataModel != null)
@@ -208,7 +205,7 @@ namespace SerialPlotter
 
 
             DataModelsCount++;
-            DataModel dataModel = new DataModel();
+            SeriesModel dataModel = new SeriesModel();
             dataModel.Id = DataModelsCount;
             dataModel.SeriesName = "Var " + DataModelsCount;
             dataModel.ColorInfo.SetRandomColor(DataModelsCount);
@@ -239,6 +236,14 @@ namespace SerialPlotter
             }
 
         }
+
+
+        public void ChangeDefaultFolder()
+        {
+            FileManager.Instance.OpenFileDialog();
+
+        }
+
 
 
         public void CloseConnection()

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using SerialPlotter.Core.Provider;
+using System;
+using System.ComponentModel;
 
 public class SettingsModel : INotifyPropertyChanged
 {
@@ -23,7 +25,7 @@ public class SettingsModel : INotifyPropertyChanged
     private char stringSeparator;
     private char firstLetter;
     private char lastLetter;
-
+    private string defaultSavePath;
 
     /// <summary>
     /// Default Constructor
@@ -40,8 +42,26 @@ public class SettingsModel : INotifyPropertyChanged
         YMin = -100;
         FirstLetter = '<';
         LastLetter = '>';
+        DefaultSavePath = FileManager.Instance.DesktopPath;
 
     }
+
+    public string DefaultSavePath
+    {
+        get { return defaultSavePath; }
+        set
+        {
+
+            if (defaultSavePath != value)
+            {
+                defaultSavePath = value;
+                NotifyPropertyChanged("DefaultSavePath");
+            }
+
+        }
+    }
+
+
 
     public char LastLetter
     {

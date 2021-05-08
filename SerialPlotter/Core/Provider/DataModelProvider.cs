@@ -33,18 +33,18 @@ public sealed class DataModelProvider
     private static string settingsFolder = "\\DataModels";
     private static string settingsFolderPath = Path.Combine(appPath + settingsFolder);
 
-    public ObservableCollection<DataModel> DataModels { get; set; }
+    public ObservableCollection<SeriesModel> DataModels { get; set; }
 
     DataModelProvider()
     {
         if (!Directory.Exists(settingsFolderPath)) Directory.CreateDirectory(settingsFolderPath);
 
-        DataModels = new ObservableCollection<DataModel>();
+        DataModels = new ObservableCollection<SeriesModel>();
         ReadDataModels();
 
     }
 
-    public ObservableCollection<DataModel> ReadDataModels()
+    public ObservableCollection<SeriesModel> ReadDataModels()
     {
         Clear(DataModels);
         bool exist = Directory.Exists(settingsFolderPath);
@@ -55,9 +55,9 @@ public sealed class DataModelProvider
             {
                 using (StreamReader sw = new StreamReader(path))
                 {
-                    DataModel dataModel;
-                    XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
-                    dataModel = xmls.Deserialize(sw) as DataModel;
+                    SeriesModel dataModel;
+                    XmlSerializer xmls = new XmlSerializer(typeof(SeriesModel));
+                    dataModel = xmls.Deserialize(sw) as SeriesModel;
                     DataModels.Add(dataModel);
                 }
                 Helpers.SortCollection(DataModels, (x => x.Id));
@@ -70,19 +70,7 @@ public sealed class DataModelProvider
 
 
 
-
-    //public static async Task SaveData(Session _sessiona)
-    //{
-    //    using (StreamWriter outputFile = File.AppendText(TempSessionDataFile))
-    //    {
-    //        await outputFile.WriteLineAsync(data.ToString());
-    //    }
-
-    //}
-
-
-
-    public void SaveSelectedDataModel(DataModel dataModel)
+    public void SaveSelectedDataModel(SeriesModel dataModel)
     {
         ReadDataModels();
 
@@ -92,7 +80,7 @@ public sealed class DataModelProvider
 
         using (StreamWriter sw = new StreamWriter(fileName))
         {
-            XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
+            XmlSerializer xmls = new XmlSerializer(typeof(SeriesModel));
             xmls.Serialize(sw, dataModel);
         }
 
@@ -107,7 +95,7 @@ public sealed class DataModelProvider
 
             using (StreamWriter sw = new StreamWriter(fileName))
             {
-                XmlSerializer xmls = new XmlSerializer(typeof(DataModel));
+                XmlSerializer xmls = new XmlSerializer(typeof(SeriesModel));
                 xmls.Serialize(sw, dataModel);
             }
 
@@ -129,7 +117,7 @@ public sealed class DataModelProvider
         }
     }
 
-    public void DeleteSelectedDataModel(DataModel dataModel)
+    public void DeleteSelectedDataModel(SeriesModel dataModel)
     {
         bool exist = Directory.Exists(settingsFolderPath);
 
