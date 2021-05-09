@@ -25,14 +25,14 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <TextBlock Text="COM Port" FontSize="14" FontWeight="DemiBold" VerticalAlignment="Center"/>
 
-                        <ComboBox  Height="25" Width="100" Margin="10" FontSize="14" FontWeight="SemiBold" ItemsSource="{Binding ComPortList}" IsEnabled="{Binding IsConnected}"  
+                        <ComboBox  Height="25" Width="100" Margin="10" FontSize="14" FontWeight="SemiBold" ItemsSource="{Binding ComPortList}" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}"  
                                    SelectedValue="{Binding SettingsModel.SerialPort, Mode=TwoWay}" />
                         <TextBlock Text="Baud Rate" FontSize="14" FontWeight="DemiBold" VerticalAlignment="Center"/>
 
-                        <ComboBox  Height="25" Width="100" Margin="10" FontSize="14" FontWeight="SemiBold" ItemsSource="{Binding BaudRateList}" IsEnabled="{Binding IsConnected}"
+                        <ComboBox  Height="25" Width="100" Margin="10" FontSize="14" FontWeight="SemiBold" ItemsSource="{Binding BaudRateList}" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}"
                                    SelectedValue="{Binding SettingsModel.BaudRate, Mode=TwoWay}" />
-                        <Button FontSize="14" FontWeight="DemiBold" Content="Connect" Height="25"  Margin="10" Padding="15 0" Command="{Binding connectButtonCommand}" IsEnabled="{Binding IsConnected}"/>
-                        <Button FontSize="14" FontWeight="DemiBold" Content="Close Port" Height="25"  Margin="10" Padding="15 0" Command="{Binding closeConnectionButtonCommand}" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}" />
+                        <Button FontSize="14" FontWeight="DemiBold" Content="Connect" Height="25"  Margin="10" Padding="15 0" Command="{Binding connectButtonCommand}" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}"/>
+                        <Button FontSize="14" FontWeight="DemiBold" Content="Close Port" Height="25"  Margin="10" Padding="15 0" Command="{Binding closeConnectionButtonCommand}" IsEnabled="{Binding IsConnected}" />
                         <Button FontSize="14" FontWeight="DemiBold" Content="Clear Plot" Height="25"  Margin="10" Padding="15 0"  Command="{Binding MultiController.ClearCommand}"  />
                         <Button FontSize="14" FontWeight="DemiBold" Content="Save Current Settings" Height="25"  Margin="10" Padding="15 0"  Command="{Binding saveCurrentSettingsButtonCommand}"  />
                     </StackPanel>
@@ -84,6 +84,7 @@
 
                         <Border Grid.Column="1" Margin="10" BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="5">
                             <StackPanel HorizontalAlignment="Center">
+                                <Button FontSize="14" FontWeight="DemiBold" Content="{Binding StartSave}" IsEnabled="{Binding IsConnected}" Height="25"  Margin="10" Padding="15 0"  Command="{Binding startSaveDataCommand}"  />
                                 <TextBlock Margin="0 5 0 0" FontSize="14" FontWeight="DemiBold">Pause Plot</TextBlock>
                                 <CheckBox Margin="0 5 0 0" IsChecked="{Binding MultiController.IsPaused ,Mode=TwoWay}" FontSize="14" HorizontalAlignment="Center">Pause</CheckBox>
 
@@ -113,15 +114,21 @@
 
                                 </StackPanel>
                                 <Separator Margin="0 10"/>
-                                <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding ElementName=Plot, Path=DisplayToolTip}" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}"  FontSize="14" FontWeight="DemiBold">Display Values</CheckBox>
+                                <CheckBox Margin="0 10 0 0" HorizontalAlignment="Center" IsChecked="{Binding ElementName=Plot, Path=DisplayToolTip}" IsEnabled="{Binding IsConnected}"  FontSize="14" FontWeight="DemiBold">Display Values</CheckBox>
 
                             </StackPanel>
                         </Border>
                     </Grid>
 
                 </TabItem>
-                <TabItem Header="Configuration" IsEnabled="{Binding IsConnected}" Height="30" FontSize="16" FontWeight="DemiBold" Padding="20 0">
+                <TabItem Header="Configuration" IsEnabled="{Binding IsConnected, Converter={StaticResource BooleanConverter}}" Height="30" FontSize="16" FontWeight="DemiBold" Padding="20 0">
                     <StackPanel HorizontalAlignment="Center" CanVerticallyScroll="True" >
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+                            <TextBlock  Width="120"  Text="Output Data Path" FontSize="14" FontWeight="DemiBold"/>
+                            <TextBox  Width="200" Margin="5 0" Text="{Binding SettingsModel.OutputFolderPath, Mode=TwoWay}"></TextBox>
+                            <Button FontSize="14" FontWeight="DemiBold"  Content="Select" Height="25" Width="50"  Padding="2 0" Command="{Binding selectOutputFolderCommand}"/>
+                        </StackPanel>
+
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Variable Count" FontSize="14" FontWeight="DemiBold" />
                             <TextBlock x:Name="variableCount"  Width="50"  Margin="5 0" Text="{Binding DataModelsCount, Mode=TwoWay}" />
@@ -133,6 +140,8 @@
                             <TextBox  Width="50" Margin="5 0" Text="{Binding SettingsModel.StringSeparator, Mode=TwoWay}"></TextBox>
                             <Button FontSize="14" FontWeight="DemiBold"  Content="Save" Height="25" Width="50"  Padding="2 0" Command="{Binding saveCurrentSettingsButtonCommand}"/>
                         </StackPanel>
+
+                       
 
                         <!--<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                             <TextBlock Width="120" Text="Create Data Models" />

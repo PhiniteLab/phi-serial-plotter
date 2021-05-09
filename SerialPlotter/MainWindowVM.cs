@@ -15,6 +15,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -32,6 +33,45 @@ namespace SerialPlotter
         public ICommand saveSeriesDetails { get; private set; }
         public ICommand deleteSeriesDetails { get; private set; }
         public ICommand saveCurrentSettingsButtonCommand { get; private set; }
+        public ICommand selectOutputFolderCommand { get; private set; }
+        public ICommand startSaveDataCommand { get; private set; }
+
+
+
+        private string startSave;
+
+        public string StartSave
+        {
+            get { return startSave; }
+            set
+            {
+                if (startSave != value)
+                {
+                    startSave = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("StartSave"));
+
+                }
+            }
+        }
+
+
+
+        private bool saveDataPointActive;
+
+        public bool SaveDataPointActive
+        {
+            get { return saveDataPointActive; }
+            set
+            {
+                if (saveDataPointActive != value)
+                {
+                    saveDataPointActive = value;
+                    OnPropertyChanged(new PropertyChangedEventArgs("SaveDataPointActive"));
+                    if (saveDataPointActive) StartSave = "Stop Saving"; else StartSave = "Start Saving";
+
+                }
+            }
+        }
 
 
         private bool isConnected;
@@ -68,20 +108,13 @@ namespace SerialPlotter
             get { return settingsModel; }
             set
             {
-
                 if (settingsModel != value)
                 {
                     settingsModel = value;
                     OnPropertyChanged(new PropertyChangedEventArgs("SettingsModel"));
-
-
                 }
             }
         }
-
-
-
-        // Data Models Configs.
 
         private int dataModelsCount;
 
@@ -104,21 +137,23 @@ namespace SerialPlotter
 
         public MainWindowVM()
         {
-
-            IsConnected = true;
+            StartSave = "Start Saving";
+            IsConnected = false;
+            SaveDataPointActive = false;
 
             // Relays
             connectButtonCommand = new RelayCommand(ConnectSerialPort);
             closeConnectionButtonCommand = new RelayCommand(CloseConnection);
             createDataModelCommand = new RelayCommand(CreateDataModels);
             saveCurrentSettingsButtonCommand = new RelayCommand(SaveCurrentSettings);
+            selectOutputFolderCommand = new RelayCommand(SelectOutputFolder);
+            startSaveDataCommand = new RelayCommand(SaveDataPoint);
             saveSeriesDetails = new RelayCommand<SeriesModel>(SaveSeriesDetails);
             deleteSeriesDetails = new RelayCommand<SeriesModel>(DeleteSeriesDetails);
 
 
             // Lists
             BaudRateList = new List<int> { 9600, 115200 };
-
             ComPortList = new List<string>();
             ComPortList = SerialPort.GetPortNames().ToList();
 
@@ -136,10 +171,20 @@ namespace SerialPlotter
             MultiController.Range.MaximumX = SettingsModel.Duration;
             MultiController.Range.AutoY = true;
 
-            //MultiController.RefreshRate = TimeSpan.FromMilliseconds(5);
 
             CreateWpfGraphDataSeries();
 
+        }
+
+        private void SaveDataPoint()
+        {
+            SaveDataPointActive = !SaveDataPointActive;
+            if (SaveDataPointActive) FileManager.Instance.CreateOutputFolder(SettingsModel);
+        }
+
+        private void SelectOutputFolder()
+        {
+            SettingsModel.OutputFolderPath = FileManager.Instance.SelectOutputFolder();
         }
 
         private void SettingsModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -200,9 +245,7 @@ namespace SerialPlotter
 
         private void CreateDataModels()
         {
-            // Clear(DataModels);
-            // TODO: Create One by One and Show the DataModels Count 
-
+          
 
             DataModelsCount++;
             SeriesModel dataModel = new SeriesModel();
@@ -238,18 +281,14 @@ namespace SerialPlotter
         }
 
 
-        public void ChangeDefaultFolder()
-        {
-            FileManager.Instance.OpenFileDialog();
-
-        }
-
 
 
         public void CloseConnection()
         {
             SerialConnection.CloseConnection();
-            IsConnected = true;
+            IsConnected = false;
+            SaveDataPointActive = false;
+
         }
 
 
@@ -261,7 +300,7 @@ namespace SerialPlotter
 
             if (!SerialConnection.IsConnected())
             {
-                IsConnected = false;
+                IsConnected = true;
                 MultiController.Clear();
                 SerialConnection.CreateConnection();
                 Console.WriteLine("Connected");
@@ -272,50 +311,62 @@ namespace SerialPlotter
                 watch.Start();
 
                 Task.Factory.StartNew(() =>
-                {
+               {
 
-                    while (SerialConnection.IsConnected())
-                    {
+                   while (SerialConnection.IsConnected())
+                   {
+                       try
+                       {
+                           string data = SerialConnection.SerialPort.ReadLine();
+                           data = data.Replace(".", ",");
 
-                        try
-                        {
-                            string data = SerialConnection.SerialPort.ReadLine();
-                            data = data.Replace(".", ",");
+                           string[] dataIn = data.Replace('\n', '\0').Split(' ');
 
-                            string[] dataIn = data.Replace('\n', '\0').Split(' ');
+                           if (dataIn.Length > 1)
+                           {
+                               List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
+                               List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
-                            if (dataIn.Length > 1)
-                            {
-                                List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
-                                List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
-
-                                // var x = watch.Elapsed;
-                                for (int i = 1; i < dataIn.Length; i++)
-                                {
-                                    double.TryParse(dataIn[0], out double x);
-                                    xValues.Add(x / 1000);
-                                    double.TryParse(dataIn[i], out double value);
-                                    yValues.Add(value);
-                                    // counter++;
-
-                                }
-                                MultiController.PushData(xValues, yValues);
-                            }
+                               // var x = watch.Elapsed;
+                               for (int i = 1; i < dataIn.Length; i++)
+                               {
+                                   double.TryParse(dataIn[0], out double x);
+                                   double.TryParse(dataIn[i], out double value);
+                                   double time = x / 1000;
+                                   xValues.Add(time);
+                                   yValues.Add(value);
 
 
-                        }
-                        catch (Exception ex)
-                        {
+                                   if (saveDataPointActive)
+                                   {
+                                       DataPoint dataPoint = new DataPoint
+                                       {
+                                           VariableName = DataModels[i - 1].SeriesName,
+                                           X = time,
+                                           Y = value
+                                       };
+                                       _ = FileManager.Instance.SaveDataPoint(dataPoint);
+                                   }
+                                   // counter++;
 
-                            Console.WriteLine(ex.Message);
-                        }
-
-                    }
-                    watch.Stop();
-                    IsConnected = true;
+                               }
+                               MultiController.PushData(xValues, yValues);
+                           }
 
 
-                });
+                       }
+                       catch (Exception ex)
+                       {
+
+                           Console.WriteLine(ex.Message);
+                       }
+
+                   }
+                   watch.Stop();
+                   IsConnected = false;
+                   saveDataPointActive = false;
+
+               });
 
             }
 

@@ -141,7 +141,7 @@ public sealed class DataModelProvider
 
     public void SaveSettings(SettingsModel settingsModel)
     {
-
+        
         string fileName = Path.Combine(appPath + "\\AppSettings.phi");
         using (StreamWriter sw = new StreamWriter(fileName))
         {

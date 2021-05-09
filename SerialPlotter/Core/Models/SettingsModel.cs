@@ -25,7 +25,7 @@ public class SettingsModel : INotifyPropertyChanged
     private char stringSeparator;
     private char firstLetter;
     private char lastLetter;
-    private string defaultSavePath;
+    private string outputFolder;
 
     /// <summary>
     /// Default Constructor
@@ -42,20 +42,20 @@ public class SettingsModel : INotifyPropertyChanged
         YMin = -100;
         FirstLetter = '<';
         LastLetter = '>';
-        DefaultSavePath = FileManager.Instance.DesktopPath;
+        OutputFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
     }
 
-    public string DefaultSavePath
+    public string OutputFolderPath
     {
-        get { return defaultSavePath; }
+        get { return outputFolder; }
         set
         {
 
-            if (defaultSavePath != value)
+            if (outputFolder != value)
             {
-                defaultSavePath = value;
-                NotifyPropertyChanged("DefaultSavePath");
+                outputFolder = value;
+                NotifyPropertyChanged("OutputFolderPath");
             }
 
         }
