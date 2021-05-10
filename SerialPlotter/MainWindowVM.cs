@@ -1,5 +1,4 @@
 ﻿using GalaSoft.MvvmLight.CommandWpf;
-using Microsoft.Win32;
 using RealTimeGraphX.DataPoints;
 using RealTimeGraphX.Renderers;
 using RealTimeGraphX.WPF;
@@ -10,13 +9,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -25,6 +21,16 @@ namespace SerialPlotter
 {
     public class MainWindowVM : INotifyPropertyChanged
     {
+
+
+        // Private variables
+        private string startSave;
+        private bool isConnected;
+        private bool saveDataPointActive;
+        private int dataModelsCount;
+        private SettingsModel settingsModel;
+        private double timeCounter = 0;
+
 
         // Commands
         public ICommand connectButtonCommand { get; private set; }
@@ -37,9 +43,7 @@ namespace SerialPlotter
         public ICommand startSaveDataCommand { get; private set; }
 
 
-
-        private string startSave;
-
+        // Properties
         public string StartSave
         {
             get { return startSave; }
@@ -53,11 +57,6 @@ namespace SerialPlotter
                 }
             }
         }
-
-
-
-        private bool saveDataPointActive;
-
         public bool SaveDataPointActive
         {
             get { return saveDataPointActive; }
@@ -72,9 +71,6 @@ namespace SerialPlotter
                 }
             }
         }
-
-
-        private bool isConnected;
         public bool IsConnected
         {
             get { return isConnected; }
@@ -88,21 +84,10 @@ namespace SerialPlotter
                 }
             }
         }
-
-
-        // Properties
-
         public List<int> BaudRateList { get; set; }
         public List<string> ComPortList { get; set; }
-
-
-
         public WpfGraphController<DoubleDataPoint, DoubleDataPoint> MultiController { get; set; }
-
         public List<ColorInfo> AllColors { get; set; }
-
-        private SettingsModel settingsModel;
-
         public SettingsModel SettingsModel
         {
             get { return settingsModel; }
@@ -115,9 +100,6 @@ namespace SerialPlotter
                 }
             }
         }
-
-        private int dataModelsCount;
-
         public int DataModelsCount
         {
             get { return dataModelsCount; }
@@ -131,11 +113,23 @@ namespace SerialPlotter
                 }
             }
         }
-
         public string DataModelSeperator { get; set; }
         public ObservableCollection<SeriesModel> DataModels { get; set; }
 
+
         public MainWindowVM()
+        {
+            InitializeCommands();
+            InitializeList();
+            GetColorList();
+            GetSettingsModel();
+            GetSavedDataModels();
+            InitializeController();
+            CreateWpfGraphDataSeries();
+        }
+
+
+        private void InitializeCommands()
         {
             StartSave = "Start Saving";
             IsConnected = false;
@@ -151,29 +145,25 @@ namespace SerialPlotter
             saveSeriesDetails = new RelayCommand<SeriesModel>(SaveSeriesDetails);
             deleteSeriesDetails = new RelayCommand<SeriesModel>(DeleteSeriesDetails);
 
+        }
 
+        private void InitializeList()
+        {
             // Lists
             BaudRateList = new List<int> { 9600, 115200 };
             ComPortList = new List<string>();
             ComPortList = SerialPort.GetPortNames().ToList();
+        }
 
-            GetColorList();
-            GetSettingsModel();
-            GetSavedDataModels();
-
-
+        private void InitializeController()
+        {
             MultiController = new WpfGraphController<DoubleDataPoint, DoubleDataPoint>();
             MultiController.Renderer = new ScrollingLineRenderer<WpfGraphDataSeries>();
             MultiController.Surface = new WpfGraphSurface();
-
             MultiController.Range.MinimumY = SettingsModel.YMax;
             MultiController.Range.MaximumY = SettingsModel.YMax;
             MultiController.Range.MaximumX = SettingsModel.Duration;
             MultiController.Range.AutoY = true;
-
-
-            CreateWpfGraphDataSeries();
-
         }
 
         private void SaveDataPoint()
@@ -189,13 +179,11 @@ namespace SerialPlotter
 
         private void SettingsModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-
             MultiController.Range.MaximumX = SettingsModel.Duration;
             MultiController.Range.AutoY = SettingsModel.AutoRange;
             MultiController.Range.MinimumY = SettingsModel.YMin;
             MultiController.Range.MaximumY = SettingsModel.YMax;
             SaveCurrentSettings();
-
         }
 
         private void SaveCurrentSettings()
@@ -224,15 +212,12 @@ namespace SerialPlotter
 
         private void DeleteSeriesDetails(SeriesModel dataModel)
         {
-
             if (dataModel != null)
             {
                 DataModelProvider.Instance.DeleteSelectedDataModel(dataModel);
                 GetSavedDataModels();
                 CreateWpfGraphDataSeries();
             }
-
-
         }
 
         private void GetSavedDataModels()
@@ -245,8 +230,6 @@ namespace SerialPlotter
 
         private void CreateDataModels()
         {
-          
-
             DataModelsCount++;
             SeriesModel dataModel = new SeriesModel();
             dataModel.Id = DataModelsCount;
@@ -277,10 +260,7 @@ namespace SerialPlotter
 
                 }
             }
-
         }
-
-
 
 
         public void CloseConnection()
@@ -288,11 +268,10 @@ namespace SerialPlotter
             SerialConnection.CloseConnection();
             IsConnected = false;
             SaveDataPointActive = false;
-
         }
 
 
-        // double counter = 0;
+      
         public void ConnectSerialPort()
         {
             SerialConnection.SerialPortName = SettingsModel.SerialPort;
@@ -303,10 +282,7 @@ namespace SerialPlotter
                 IsConnected = true;
                 MultiController.Clear();
                 SerialConnection.CreateConnection();
-                Console.WriteLine("Connected");
-
-
-                //MultiController.Clear();
+            
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
 
@@ -327,12 +303,25 @@ namespace SerialPlotter
                                List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
                                List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
-                               // var x = watch.Elapsed;
+                               
                                for (int i = 1; i < dataIn.Length; i++)
                                {
-                                   double.TryParse(dataIn[0], out double x);
+
+                                   double time = 0;
+
+                                   if (SettingsModel.TimeMode == TimeMode.TimeFromComputer)
+                                   {
+                                       time = timeCounter / 1000;
+                                       timeCounter++;
+                                   }
+                                   else if (SettingsModel.TimeMode == TimeMode.TimeFromSource)
+                                   {
+                                       double.TryParse(dataIn[0], out double x);
+                                       time = x / 1000;
+                                   }
+
                                    double.TryParse(dataIn[i], out double value);
-                                   double time = x / 1000;
+
                                    xValues.Add(time);
                                    yValues.Add(value);
 
@@ -347,8 +336,6 @@ namespace SerialPlotter
                                        };
                                        _ = FileManager.Instance.SaveDataPoint(dataPoint);
                                    }
-                                   // counter++;
-
                                }
                                MultiController.PushData(xValues, yValues);
                            }

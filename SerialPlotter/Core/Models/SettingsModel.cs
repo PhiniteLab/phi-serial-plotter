@@ -36,7 +36,7 @@ public class SettingsModel : INotifyPropertyChanged
         BaudRate = 115200;
         StringSeparator = ' ';
         Duration = 2;
-        TimeMode = TimeMode.TimeFromSource;
+        TimeMode = TimeMode.TimeFromComputer;
         AutoRange = true;
         YMax = 100;
         YMin = -100;
