@@ -304,7 +304,7 @@ namespace SerialPlotter
                                List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
                                
-                               for (int i = 1; i < dataIn.Length; i++)
+                               for (int i = 0; i < dataIn.Length; i++)
                                {
 
                                    double time = 0;
@@ -314,7 +314,7 @@ namespace SerialPlotter
                                        time = timeCounter / 1000;
                                        timeCounter++;
                                    }
-                                   else if (SettingsModel.TimeMode == TimeMode.TimeFromSource)
+                                   else if (SettingsModel.TimeMode == TimeMode.TimeFromComputer)
                                    {
                                        double.TryParse(dataIn[0], out double x);
                                        time = x / 1000;
@@ -330,7 +330,7 @@ namespace SerialPlotter
                                    {
                                        DataPoint dataPoint = new DataPoint
                                        {
-                                           VariableName = DataModels[i - 1].SeriesName,
+                                           VariableName = DataModels[i].SeriesName,
                                            X = time,
                                            Y = value
                                        };
