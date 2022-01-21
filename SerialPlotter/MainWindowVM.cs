@@ -285,7 +285,7 @@ namespace SerialPlotter
             
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-
+                double timecounter = 0;
                 Task.Factory.StartNew(() =>
                {
 
@@ -296,31 +296,24 @@ namespace SerialPlotter
                            string data = SerialConnection.SerialPort.ReadLine();
                            data = data.Replace(".", ",");
 
-                           string[] dataIn = data.Replace('\n', '\0').Split(' ');
-
+                           string[] dataIn = data.Replace('\r', '\0').Replace('\n', '\0').Split(' ');
+                         
                            if (dataIn.Length > 1)
                            {
                                List<DoubleDataPoint> yValues = new List<DoubleDataPoint>();
                                List<DoubleDataPoint> xValues = new List<DoubleDataPoint>();
 
                                
-                               for (int i = 0; i < dataIn.Length; i++)
+                               for (int i = 0; i < dataIn.Length - 1; i++)
                                {
 
                                    double time = 0;
+                                   //time = timecounter / 1000;
+                                   //timecounter++;
+                                   double.TryParse(dataIn[0], out double x);
+                                   time = x / 1000;
 
-                                   if (SettingsModel.TimeMode == TimeMode.TimeFromComputer)
-                                   {
-                                       time = timeCounter / 1000;
-                                       timeCounter++;
-                                   }
-                                   else if (SettingsModel.TimeMode == TimeMode.TimeFromComputer)
-                                   {
-                                       double.TryParse(dataIn[0], out double x);
-                                       time = x / 1000;
-                                   }
-
-                                   double.TryParse(dataIn[i], out double value);
+                                   double.TryParse(dataIn[i+1], out double value);
 
                                    xValues.Add(time);
                                    yValues.Add(value);
@@ -339,7 +332,7 @@ namespace SerialPlotter
                                }
                                MultiController.PushData(xValues, yValues);
                            }
-
+                          
 
                        }
                        catch (Exception ex)
